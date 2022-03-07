@@ -32,11 +32,7 @@ public class StudentController {
     //1. VAZIRLIK
     @GetMapping("/forMinistry")
     public Page<Student> getStudentListForMinistry(@RequestParam int page) {
-        //1-1=0     2-1=1    3-1=2    4-1=3
-        //select * from student limit 10 offset (0*10)
-        //select * from student limit 10 offset (1*10)
-        //select * from student limit 10 offset (2*10)
-        //select * from student limit 10 offset (3*10)
+
         Pageable pageable = PageRequest.of(page, 10);
         return studentRepository.findAll(pageable);
     }
@@ -45,11 +41,7 @@ public class StudentController {
     @GetMapping("/forUniversity/{universityId}")
     public Page<Student> getStudentListForUniversity(@PathVariable Integer universityId,
                                                      @RequestParam int page) {
-        //1-1=0     2-1=1    3-1=2    4-1=3
-        //select * from student limit 10 offset (0*10)
-        //select * from student limit 10 offset (1*10)
-        //select * from student limit 10 offset (2*10)
-        //select * from student limit 10 offset (3*10)
+
         Pageable pageable = PageRequest.of(page, 10);
         return studentRepository.findAllByGroup_Faculty_UniversityId(universityId, pageable);
     }
@@ -79,11 +71,13 @@ public class StudentController {
             Optional<Subject> optionalSubject = subjectRepository.findById(subject);
             optionalSubject.ifPresent(subjects::add);
         }
-        if (subjects.isEmpty()) return "Subject topilmadi";
+        if (subjects.isEmpty()) return "Subject not found!!";
+
         Optional<Address> optionalAddress = addressRepository.findById(dto.getAddressId());
-        if (optionalAddress.isEmpty()) return "Address topilmadi";
+        if (optionalAddress.isEmpty()) return "Address not found!!";
+
         Optional<Group> optionalGroup = groupRepository.findById(dto.getGroupId());
-        if (optionalGroup.isEmpty()) return "Group topilmadi";
+        if (optionalGroup.isEmpty()) return "Group not found!!";
 
         Student student = new Student();
         student.setAddress(optionalAddress.get());
@@ -91,15 +85,19 @@ public class StudentController {
         student.setFirstName(dto.getFirstName());
         student.setLastName(dto.getLastName());
         student.setSubjects(subjects);
-        studentRepository.save(student);
-        return "Student malumotlari saqlandi";
+        try {
+            studentRepository.save(student);
+            return "Successfully added!!";
+        } catch (Exception e) {
+            return "Error!! No added.";
+        }
     }
 
     @PutMapping("/update/{id}")
     public String update(@PathVariable(value = "id") Integer id, StudentDto dto) {
 
         Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isEmpty()) return "Student topilmadi";
+        if (optionalStudent.isEmpty()) return "Student not found!!";
 
         List<Subject> subjects = new ArrayList<>();
 
@@ -107,11 +105,13 @@ public class StudentController {
             Optional<Subject> optionalSubject = subjectRepository.findById(subject);
             optionalSubject.ifPresent(subjects::add);
         }
-        if (subjects.isEmpty()) return "Subject topilmadi";
+        if (subjects.isEmpty()) return "Subject not found!!";
+
         Optional<Address> optionalAddress = addressRepository.findById(dto.getAddressId());
-        if (optionalAddress.isEmpty()) return "Address topilmadi";
+        if (optionalAddress.isEmpty()) return "Address not found!!";
+
         Optional<Group> optionalGroup = groupRepository.findById(dto.getGroupId());
-        if (optionalGroup.isEmpty()) return "Group topilmadi";
+        if (optionalGroup.isEmpty()) return "Group not found!!";
 
         Student student = optionalStudent.get();
         student.setAddress(optionalAddress.get());
@@ -119,15 +119,21 @@ public class StudentController {
         student.setFirstName(dto.getFirstName());
         student.setLastName(dto.getLastName());
         student.setSubjects(subjects);
-        studentRepository.save(student);
-        return "Student malumotlari yangilandi";
+        try {
+            studentRepository.save(student);
+            return "Successfully edited!!!";
+        } catch (Exception e) {
+            return "Error!! No edited.";
+        }
     }
 
     @DeleteMapping("/delete/{id}")
     public boolean delete(@PathVariable(value = "id") Integer id) {
-        Optional<Student> optionalStudent = studentRepository.findById(id);
-        if (optionalStudent.isEmpty()) return false;
-        studentRepository.delete(optionalStudent.get());
-        return true;
+        try {
+            studentRepository.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
